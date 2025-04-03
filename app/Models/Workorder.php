@@ -1,0 +1,73 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Workorder extends Model
+{
+    //
+    protected $fillable = [
+        'user_id',
+        'judul_rapat',
+        'deskripsi',
+        'tanggal',
+        'waktu_mulai',
+        'waktu_selesai',
+        'lokasi',
+        'created_by', 
+        'status',
+    ];
+
+    protected $dates = [
+        'created_at',
+        'updated_at'
+    ];
+
+    public $timestamps = true;
+
+    public static function lastWorkOrder()
+    {
+        return static::whereDate('created_at', today())->latest()->first();
+    }
+
+    public static function getWorkOrders()
+    {
+        return static::join('users', 'workorders.user_id', '=', 'users.id')
+            ->select('workorders.*', 'users.name as invited')
+            ->orderBy('workorders.created_at', 'desc')
+            ->get();
+    }
+
+    public static function getWorkOrderByOperator($id)
+    {
+        return static::join('users', 'workorders.user_id', '=', 'users.id')
+            ->select('workorders.*', 'users.name as invited')
+            ->where('workorders.user_id', $id)
+            ->orderBy('workorders.created_at', 'desc')
+            ->get();
+    }
+
+    public static function getWorkOrderByStatus($status, $id)
+    {
+        return static::join('users', 'workorders.user_id', '=', 'users.id')
+            ->select('workorders.*', 'users.name as invited')
+            ->where('status', $status)
+            ->where('user_id', $id)
+            ->orderBy('workorders.created_at', 'desc')
+            ->get();
+    }
+
+    public static function countWorkOrderByStatus($status)
+    {
+        return static::where('status', $status)->count();
+    }
+
+    public static function countWorkOrderByStatusAssigned($status, $id)
+    {
+        return static::where('status', $status)
+            ->where('user_id', $id)
+            ->count();
+    }
+
+}
